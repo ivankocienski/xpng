@@ -1,4 +1,4 @@
-(in-package #:png)
+(in-package #:xpng)
 
 #+lispworks
 (defun make-shareable-byte-vector (size &optional (byte-size 8))

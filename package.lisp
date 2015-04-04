@@ -1,6 +1,6 @@
 ;;;; -*- Mode: Lisp;  -*-
 
-(defpackage #:png
+(defpackage #:xpng
   (:documentation "Read and write PNG (Portable Network Graphics) files.")
   (:use #:common-lisp #:cffi)
   (:shadow #:make-shareable-byte-vector

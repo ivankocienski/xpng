@@ -1,8 +1,8 @@
-(defpackage #:png-test
-  (:use #:common-lisp #:lisp-unit #:png)
+(defpackage #:xpng-test
+  (:use #:common-lisp #:lisp-unit #:xpng)
   (:export #:*pngsuite-pathname*))
 
-(in-package #:png-test)
+(in-package #:xpng-test)
 
 ;; ASDF:SYSTEM-RELATIVE-PATHNAME only exists in very recent versions
 ;; of ASDF, so we'll do it this way.

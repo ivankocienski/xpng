@@ -3,7 +3,7 @@
 ;;;   operations efficient is a pain.  Should see if I can just pass
 ;;;   the 3-D array to the C functions.
 
-(in-package #:png)
+(in-package #:xpng)
 
 
 (defun image-displaced-to-buffer-p (image)

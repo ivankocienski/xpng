@@ -11,10 +11,10 @@
 #+cffi-features:darwin
 (push #p"/opt/local/lib/" cffi:*foreign-library-directories*)
 
-(asdf:defsystem #:png
+(asdf:defsystem #:xpng
   :description "Read and write PNG (Portable Network Graphics) files."
-  :perform (asdf:load-op :after (op png)
-			 (pushnew :png *features*))
+  :perform (asdf:load-op :after (op xpng)
+			 (pushnew :xpng *features*))
   :components ((:file "package")
 	       (:file "compat" :depends-on ("package"))
 	       (:file "image" :depends-on ("package" "compat"))

@@ -1,7 +1,7 @@
 (flag "-I/opt/local/include")
 (include "png.h")
 
-(in-package #:png)
+(in-package #:xpng)
 
 (constant (+png-color-mask-palette+ "PNG_COLOR_MASK_PALETTE"))
 (constant (+png-color-mask-color+ "PNG_COLOR_MASK_COLOR"))

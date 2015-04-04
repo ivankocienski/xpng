@@ -1,13 +1,13 @@
-(in-package #:png)
+(in-package #:xpng)
 
 
 (define-foreign-library libpng
 ;;  (:unix (:or "libpng12.0.dylib" "libpng12.dylib" "libpng12.so.0"))
-  (t (:default "libpng12")))
+  (t (:default "libpng16")))
 
 (use-foreign-library libpng)
 
-(defconstant +png-libpng-ver-string+ (symbol-name '|1.2.26|))
+(defconstant +png-libpng-ver-string+ (symbol-name '|1.6.16|))
 
 ;;; Foreign function definitions.
 
