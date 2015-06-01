@@ -277,43 +277,43 @@
 
    Signals an error if reading the image fails."
   (with-png-struct (png-ptr :direction :input)
-                   (with-png-info-struct (info-ptr png-ptr (png-create-info-struct png-ptr))
-                                         (with-png-info-struct (end-ptr png-ptr (png-create-info-struct png-ptr))
+    (with-png-info-struct (info-ptr png-ptr (png-create-info-struct png-ptr))
+      (with-png-info-struct (end-ptr png-ptr (png-create-info-struct png-ptr))
 
-                                                               (let ((*stream* input))
+	(let ((*stream* input))
 
-                                                                 (png-set-read-fn png-ptr (null-pointer) (callback user-read-data))
+	  (png-set-read-fn png-ptr (null-pointer) (callback user-read-data))
 
-                                                                 (png-read-info png-ptr info-ptr)
+	  (png-read-info png-ptr info-ptr)
 
-                                                                 (multiple-value-bind (width height bit-depth color-type)
+	  (multiple-value-bind (width height bit-depth color-type)
 
-                                                                   (get-ihdr png-ptr info-ptr) 
+	      (get-ihdr png-ptr info-ptr) 
 
-                                                                   (when (= color-type +png-color-type-palette+)
-                                                                     (png-set-palette-to-rgb png-ptr))
+	    (when (= color-type +png-color-type-palette+)
+	      (png-set-palette-to-rgb png-ptr))
 
-                                                                   (when (grayp color-type)
-                                                                     ;; png-set-expand-gray-1-2-4-to-8 did nothing on CCL
-                                                                     ;; DarwinPPC, but png-set-expand seems to work.
-                                                                     (png-set-expand png-ptr))
+	    (when (grayp color-type)
+	      ;; png-set-expand-gray-1-2-4-to-8 did nothing on CCL
+	      ;; DarwinPPC, but png-set-expand seems to work.
+	      (png-set-expand png-ptr))
 
-                                                                   #+little-endian
-                                                                   (when (= bit-depth 16) 
-                                                                     (png-set-swap png-ptr))
+	    #+little-endian
+	    (when (= bit-depth 16) 
+	      (png-set-swap png-ptr))
 
-                                                                   ;                                (unless (zerop (logand color-type +png-color-mask-alpha+))
-                                                                   ;                                  (png-set-strip-alpha png-ptr))
+					;                                (unless (zerop (logand color-type +png-color-mask-alpha+))
+					;                                  (png-set-strip-alpha png-ptr))
 
-                                                                   (let ((image (make-image height width
-                                                                                            (if (grayp color-type) 1 4)
-                                                                                            (if (= 16 bit-depth) 16 8))))
-                                                                     (with-row-pointers (row-pointers image)
-                                                                                        (png-set-rows png-ptr info-ptr row-pointers)
-                                                                                        (png-read-image png-ptr row-pointers))
+	    (let ((image (make-image height width
+				     (if (grayp color-type) 1 4)
+				     (if (= 16 bit-depth) 16 8))))
+	      (with-row-pointers (row-pointers image)
+		(png-set-rows png-ptr info-ptr row-pointers)
+		(png-read-image png-ptr row-pointers))
 
 
-                                                                     image)))))))
+	      image)))))))
 
 (defun decode-file (pathname)
   (with-open-file (input pathname :element-type '(unsigned-byte 8))
@@ -329,9 +329,9 @@
    Signals an error if writing the image fails."
   (check-type image (or grayscale-image rgb-image))
   (with-png-struct (png-ptr :direction :output)
-                   (with-png-info-struct (info-ptr png-ptr (png-create-info-struct png-ptr))
-                                         (let ((*stream* output))
-                                           (png-set-write-fn png-ptr (null-pointer) (callback user-write-data)
+    (with-png-info-struct (info-ptr png-ptr (png-create-info-struct png-ptr))
+      (let ((*stream* output))
+	(png-set-write-fn png-ptr (null-pointer) (callback user-write-data)
                                                              (callback user-flush-data))
                                            (png-set-ihdr png-ptr info-ptr (image-width image) (image-height image)
                                                          (image-bit-depth image) 
