@@ -9,19 +9,19 @@
 (defparameter *pngsuite-pathname*
   #+asdf (merge-pathnames "PngSuite/" 
 			  (truename (asdf:system-definition-pathname 
-				     '#:png-test))))
+				     '#:xpng-test))))
 
 (defun decode-pngsuite (basename)
   (let ((pathname (merge-pathnames (make-pathname :name basename :type "png")
 				   *pngsuite-pathname*)))
     (with-open-file (input pathname :element-type '(unsigned-byte 8))
-      (decode input))))
+      (xpng::decode input))))
 
 (defun encode-decode (im)
   (ignore-errors (delete-file "tmp.png"))
-  (png::encode-file im "tmp.png")
+  (xpng::encode-file im "tmp.png")
   (prog1
-      (png::decode-file "tmp.png")
+      (xpng::decode-file "tmp.png")
     (delete-file "tmp.png")))
 
 (defun unused-bits (im)
@@ -29,10 +29,10 @@
   (let ((x (reduce #'logior (array-displacement im))))
     (loop 
        for bits from 0
-       until (or (= bits (etypecase im
-			   (8-bit-image 8)
-			   (16-bit-image 16)))
-		 (not (zerop (ldb (byte 1 bits) x))))
+       until (or 
+               (= bits 
+                  (etypecase im (8-bit-image 8) (16-bit-image 16)))
+               (not (zerop (ldb (byte 1 bits) x))))
        finally (return bits))))
 
 (define-test make-image
@@ -43,9 +43,9 @@
     (assert-true (typep i16 '16-bit-image)) 
     (assert-false (typep i16 '8-bit-image))
     (assert-true (typep i8 'image)) 
-    (assert-true (typep i8 'rgb-image))
+    (assert-true (typep i8 'rgb-image)) ; <--
     (assert-true (typep i16 'image))
-    (assert-true (typep i16 'rgb-image))
+    (assert-true (typep i16 'rgb-image)) ; <--
     (assert-equal '(2 4 3) (array-dimensions i8))))
 
 (define-test decode-8-bit

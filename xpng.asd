@@ -15,10 +15,13 @@
   :description "Read and write PNG (Portable Network Graphics) files."
   :perform (asdf:load-op :after (op xpng)
 			 (pushnew :xpng *features*))
-  :components ((:file "package")
-	       (:file "compat" :depends-on ("package"))
-	       (:file "image" :depends-on ("package" "compat"))
-	       (:file "libpng" :depends-on ("grovel" "image" "compat"))
-	       (cffi-grovel:grovel-file "grovel" :depends-on ("package")))
+  :components ((:file "src/package")
+  (:file "src/ffi")
+  (:file "src/common")
+  (:file "src/encode")
+  (:file "src/decode")
+	       (:file "src/compat" :depends-on ("src/package"))
+	       (:file "src/image" :depends-on ("src/package" "src/compat"))
+	       (cffi-grovel:grovel-file "src/grovel" :depends-on ("src/package")))
   :depends-on (#:cffi))
 

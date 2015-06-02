@@ -58,11 +58,11 @@
               :element-type (ecase bit-depth
                               ((8 nil) '(unsigned-byte 8))
                               (16 '(unsigned-byte 16)))
-              :displaced-to (make-shareable-byte-vector
-                              (* height width channels) (or bit-depth 8))))
+              :displaced-to (make-shareable-byte-vector (* height width channels) (or bit-depth 8))))
 
 (defun image-height (image) 
   "The height of image, i.e., the number of rows."
+
   (array-dimension image 0))
 
 (defun image-width (image)
