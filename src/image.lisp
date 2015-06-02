@@ -46,7 +46,7 @@
 
 (deftype rgb-image (&optional height width)
   "An IMAGE with three channels."
-  `(image ,height ,width 4))
+  `(image ,height ,width 3)) ;; is 4 for rgba
 
 (defun make-image (height width channels &optional bit-depth)
   "Make a new IMAGE of the specified height, width, and number of

@@ -49,7 +49,7 @@
 					;                                  (png-set-strip-alpha png-ptr))
 
 	    (let ((image (make-image height width
-				     (if (grayp color-type) 1 4)
+				     (if (grayp color-type) 1 3) ; is 4 for rgba
 				     (if (= 16 bit-depth) 16 8))))
 	      (with-row-pointers (row-pointers image)
 		(png-set-rows png-ptr info-ptr row-pointers)
