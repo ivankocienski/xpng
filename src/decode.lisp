@@ -23,7 +23,7 @@
     (with-png-info-struct (info-ptr png-ptr (png-create-info-struct png-ptr))
       (with-png-info-struct (end-ptr png-ptr (png-create-info-struct png-ptr))
 
-	(let ((*stream* input) (has-alpha nil))
+	(let ((*stream* input) (read-channels 0))
 
 	  (png-set-read-fn png-ptr (null-pointer) (callback user-read-data))
 
@@ -37,8 +37,9 @@
            (png-set-palette-to-rgb png-ptr)
            (if (png-get-valid png-ptr info-ptr +png-info-trns+)
              (progn
-               (setf has-alpha T)
-               (png_set_tRNS_to_alpha png_ptr))
+               (setf read-channels 4)
+               (png-set-trns-to-alpha png-ptr))
+             (setf read-channels 3)
            )))
 
         ((= color-type +png-color-type-gray+) 
@@ -46,20 +47,21 @@
            (png-set-expand-gray-1-2-4-to-8 png-ptr)
            (if (png-get-valid png-ptr info-ptr +png-info-trns+)
              (progn
-               (setf has-alpha T)
-               (png_set_tRNS_to_alpha png_ptr)))))
+               (setf read-channels 2)
+               (png-set-trns-to-alpha png-ptr))
+             (setf read-channels 1))))
 
         ((= color-type +png-color-type-gray-alpha+)
          (progn
-           (setf has-alpha T)
+           (setf read-channels 2)
            (png-set-palette-to-rgb png-ptr)))
 
-;        ((= color-type +png-color-type-rgb+)
-;         (setf read-channels 4))
+        ((= color-type +png-color-type-rgb+)
+         (setf read-channels 3))
         
         ((= color-type +png-color-type-rgba+)
          (progn
-           (setf has-alpha T)
+           (setf read-channels 4)
            (png-set-expand png-ptr)))
         )
 
@@ -67,10 +69,7 @@
 	    (if (= bit-depth 16) 
 	      (png-set-swap png-ptr))
 
-      (if has-alpha 
-        (incf channel-count))
-
-	    (let ((image (make-image height width read-channels read-depth)))
+	    (let ((image (make-image height width read-channels bit-depth)))
 	      (with-row-pointers (row-pointers image)
                            
                            (png-set-rows png-ptr info-ptr row-pointers)
