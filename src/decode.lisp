@@ -23,37 +23,58 @@
     (with-png-info-struct (info-ptr png-ptr (png-create-info-struct png-ptr))
       (with-png-info-struct (end-ptr png-ptr (png-create-info-struct png-ptr))
 
-	(let ((*stream* input))
+	(let ((*stream* input) (has-alpha nil))
 
 	  (png-set-read-fn png-ptr (null-pointer) (callback user-read-data))
 
 	  (png-read-info png-ptr info-ptr)
 
-	  (multiple-value-bind (width height bit-depth color-type)
+	  (multiple-value-bind (width height bit-depth color-type) (get-ihdr png-ptr info-ptr) 
 
-	      (get-ihdr png-ptr info-ptr) 
+      (cond
+        ((= color-type +png-color-type-palette+) 
+         (progn
+           (png-set-palette-to-rgb png-ptr)
+           (if (png-get-valid png-ptr info-ptr +png-info-trns+)
+             (progn
+               (setf has-alpha T)
+               (png_set_tRNS_to_alpha png_ptr))
+           )))
 
-	    (when (= color-type +png-color-type-palette+)
-	      (png-set-palette-to-rgb png-ptr))
+        ((= color-type +png-color-type-gray+) 
+         (progn
+           (png-set-expand-gray-1-2-4-to-8 png-ptr)
+           (if (png-get-valid png-ptr info-ptr +png-info-trns+)
+             (progn
+               (setf has-alpha T)
+               (png_set_tRNS_to_alpha png_ptr)))))
 
-	    (when (grayp color-type)
-	      ;; png-set-expand-gray-1-2-4-to-8 did nothing on CCL
-	      ;; DarwinPPC, but png-set-expand seems to work.
-	      (png-set-expand png-ptr))
+        ((= color-type +png-color-type-gray-alpha+)
+         (progn
+           (setf has-alpha T)
+           (png-set-palette-to-rgb png-ptr)))
+
+;        ((= color-type +png-color-type-rgb+)
+;         (setf read-channels 4))
+        
+        ((= color-type +png-color-type-rgba+)
+         (progn
+           (setf has-alpha T)
+           (png-set-expand png-ptr)))
+        )
 
 	    #+little-endian
-	    (when (= bit-depth 16) 
+	    (if (= bit-depth 16) 
 	      (png-set-swap png-ptr))
 
-					;                                (unless (zerop (logand color-type +png-color-mask-alpha+))
-					;                                  (png-set-strip-alpha png-ptr))
+      (if has-alpha 
+        (incf channel-count))
 
-	    (let ((image (make-image height width
-				     (if (grayp color-type) 1 3) ; is 4 for rgba
-				     (if (= 16 bit-depth) 16 8))))
+	    (let ((image (make-image height width read-channels read-depth)))
 	      (with-row-pointers (row-pointers image)
-		(png-set-rows png-ptr info-ptr row-pointers)
-		(png-read-image png-ptr row-pointers))
+                           
+                           (png-set-rows png-ptr info-ptr row-pointers)
+                           (png-read-image png-ptr row-pointers))
 
 
 	      image)))))))

@@ -1,12 +1,6 @@
 (in-package #:xpng)
 
 
-;;; Input/output.
-
-
-
-;;; Encode and decode PNG files.
-
 (defmacro with-png-struct ((var &key (direction :input)) &body body)
   (let ((pointer (gensym "POINTER")))
     `(let ((,var (,(ecase direction
