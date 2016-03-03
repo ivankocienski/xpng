@@ -1,5 +1,7 @@
 (in-package #:xpng)
 
+#| ;; TODO: cross implementation compatibility
+
 #+lispworks
 (defun make-shareable-byte-vector (size &optional (byte-size 8))
   (sys:in-static-area
@@ -14,9 +16,13 @@
 (defun make-shareable-byte-vector (size &optional (byte-size 8))
    (make-array size :element-type (list 'unsigned-byte byte-size)))
 
-#+sbcl ; Present in SBCL 1.0.24.
-(declaim (ftype (function (array) (values (simple-array * (*)) &optional))
-                array-storage-vector))
+|#
+
+;;#+sbcl ; Present in SBCL 1.0.24.
+;;(declaim (ftype (function (array) (values (simple-array * (*)) &optional))
+;;                array-storage-vector))
+
+#|
 #+sbcl
 (defun array-storage-vector (array)
   "Returns the underlying storage vector of ARRAY, which must be a non-displaced array.
@@ -32,12 +38,13 @@ function to be removed without further warning."
   ;; KLUDGE: Without TRULY-THE the system is not smart enough to figure out that
   ;; the return value is always of the known type.
   (sb-ext:truly-the (simple-array * (*))
-             (if (sb-kernel:array-header-p array)
-                 (if (sb-kernel:%array-displaced-p array)
-                     (error "~S cannot be used with displaced arrays. Use ~S instead."
-                            'array-storage-vector 'array-displacement)
-                     (sb-kernel:%array-data-vector array))
-                 array)))
+		    (if (sb-kernel:array-header-p array)
+			(if (sb-kernel:%array-displaced-p array)
+			    (error "~S cannot be used with displaced arrays. Use ~S instead."
+				   'array-storage-vector 'array-displacement)
+			    (sb-kernel:%array-data-vector array))
+			array)))
+|#
 
 #+allegro
 (defmacro with-pointer-to-vector-data ((ptr-var vector) &body body)
@@ -54,35 +61,30 @@ possibly arrays of type simple-array (unsigned-byte 8) (*)."
 					       :lisp ,simple-vec)))
 	 ,@body))))
 
-#+clisp
+;;#+clisp
 (defmacro with-pointer-to-vector-data ((ptr-var vector) &body body)
   "Bind PTR-VAR to a foreign pointer to the data in VECTOR."
-  (let ((vector-var (gensym))
-	(type (gensym))
-	(nbytes (gensym))
-	(bytes-per-word (gensym)))
-    `(let* ((,vector-var ,vector)
-	    ,type ,bytes-per-word)
-       (etypecase ,vector-var
-	 ((simple-array (unsigned-byte 8) (*)) (setq ,type :unsigned-char
-						     ,bytes-per-word 1))
-	 ((simple-array (unsigned-byte 16) (*)) (setq ,type :unsigned-short
-						      ,bytes-per-word 2)))
-       (with-foreign-pointer (,ptr-var (* (length ,vector-var) ,bytes-per-word)
-				       ,nbytes)
+  (let ((vector-var     (gensym))
+	(nbytes         (gensym)))
+    
+    `(let* ((,vector-var ,vector))
+              
+       (with-foreign-pointer (,ptr-var (length ,vector-var) ,nbytes)
          ;; copy-in
          (loop
 	    for word from 0 
-	    and byte below ,nbytes by ,bytes-per-word 
-	    do (cffi-sys:%mem-set (aref ,vector-var word) ,ptr-var ,type byte))
+	    and byte below ,nbytes 
+	    do (cffi-sys:%mem-set (aref ,vector-var word) ,ptr-var :unsigned-char byte))
+	 
          (unwind-protect (progn ,@body)
            ;; copy-out
            (loop 
 	      for word from 0
-	      and byte below ,nbytes by ,bytes-per-word
+	      and byte below ,nbytes
 	      do (setf (aref ,vector-var word)
-		       (cffi-sys:%mem-ref ,ptr-var ,type byte))))))))
+		       (cffi-sys:%mem-ref ,ptr-var :unsigned-char byte))))))))
 
+#|
 #+clisp
 (defmacro with-pointer-to-vector-data ((ptr-var vector) &body body)
   "Bind PTR-VAR to a foreign pointer to the data in VECTOR."
@@ -111,3 +113,4 @@ possibly arrays of type simple-array (unsigned-byte 8) (*)."
 	      and byte below ,nbytes by ,bytes-per-word
 	      do (setf (aref ,vector-var word)
 		       (cffi-sys:%mem-ref ,ptr-var ,type byte))))))))
+|#

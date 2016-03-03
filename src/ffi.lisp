@@ -1,4 +1,3 @@
-
 (in-package :xpng)
 
 (define-foreign-library libpng
@@ -91,6 +90,12 @@
          (compression-type :int)
          (filter-type :int))
 
+(defcfun "png_get_PLTE" :int32
+  (png-ptr :pointer)
+  (png-info :pointer)
+  (palette :pointer)
+  (num-colors :pointer))
+
 (defcfun "png_set_palette_to_rgb" :void
          (png-ptr :pointer))
 
@@ -109,6 +114,9 @@
          (png-ptr :pointer))
 
 (defcfun "png_set_strip_16" :void
+         (png-ptr :pointer))
+
+(defcfun "png_set_packing" :void
          (png-ptr :pointer))
 
 (defcfun "png_set_strip_alpha" :void
@@ -130,6 +138,10 @@
          (png-ptr :pointer)
          (row-pointers :pointer))
 
+(defcfun "png_read_end" :void
+         (png-ptr :pointer)
+         (info-ptr :pointer))
+  
 (defcfun "png_write_png" :void
          (png-ptr :pointer)
          (info-ptr :pointer)
@@ -139,7 +151,7 @@
 (defcfun "memcpy" :pointer
          (dest :pointer)
          (source :pointer)
-         (n size))
+         (n :uint))
 
 
 (defvar *stream*)
@@ -155,22 +167,18 @@
 
 (defcallback user-read-data :void ((png-ptr :pointer) (data :pointer)
 				   (length png-size))
+  
              (declare (ignore png-ptr))
              (ensure-buffer-sufficient length)
-             (let ((bytes-read (read-sequence *buffer* *stream* :start 0 :end length)))
+
+	     (let ((bytes-read (read-sequence *buffer* *stream* :start 0 :end length)))
                (unless (= bytes-read length)
                  (error "Expected to read ~D bytes, but only read ~D." length 
                         bytes-read)))
+	     
              (with-pointer-to-vector-data (buffer-ptr *buffer*)
 	       (memcpy data buffer-ptr length)))
 
-(defcallback user-write-data :void ((png-ptr :pointer) (data :pointer)
-				    (length png-size))
-             (declare (ignore png-ptr))
-             (ensure-buffer-sufficient length)
-             (with-pointer-to-vector-data (buffer-ptr *buffer*)
-	       (memcpy buffer-ptr data length))
-             (write-sequence *buffer* *stream* :start 0 :end length))
 
 (defcallback user-flush-data :void ((png-ptr :pointer))
              (declare (ignore png-ptr)))
