@@ -1,5 +1,11 @@
 (in-package #:xpng)
 
+(defstruct color
+  (red   0)
+  (green 0)
+  (blue  0)
+  (alpha 0))
+
 (defstruct image
   type      ; identifies type for user
   width     ; pixels
