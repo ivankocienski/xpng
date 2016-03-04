@@ -19,11 +19,17 @@
   (let ((it (image-type image)))
 
     (cond
-      ((= it 0) 1)   ; grey
-      ((= it 2) 3)   ; truecolor
-      ((= it 3) 1)   ; indexed
-      ((= it 4) 2)   ; grey + alpha
-      ((= it 6) 4))) ; truecolor + alpha  
+      ((= it +png-color-type-gray+)       1)   ; grey
+      ((= it +png-color-type-palette+)    1)   ; indexed
+      ((= it +png-color-type-gray-alpha+) 2)   ; grey + alpha
+      ((= it +png-color-type-rgb+)        3)   ; truecolor
+      ((= it +png-color-type-rgba+)       4))) ; truecolor + alpha  
+
+;;  ((= it 0) 1)   ; grey
+;;      ((= it 2) 3)   ; truecolor
+;;      ((= it 3) 1)   ; indexed
+;;      ((= it 4) 2)   ; grey + alpha
+;;      ((= it 6) 4))) ; truecolor + alpha  
   )
 
 

@@ -87,7 +87,7 @@
 
   image)
 
-(defun ik-decode (file-stream)
+(defun decode (file-stream)
   (let ((image (make-image)))
 
     (with-png-struct (png)
@@ -110,6 +110,6 @@
     
     image))
 
-(defun ik-decode-file (pathname)
+(defun decode-file (pathname)
   (with-open-file (input pathname :element-type '(unsigned-byte 8))
-    (ik-decode input)))
+    (decode input)))

@@ -6,7 +6,7 @@
   (asdf:operate 'asdf:load-op '#:cffi-grovel))
 
 (asdf:defsystem #:xpng
-  :description "Read and write PNG (Portable Network Graphics) files."
+  :description "Read PNG (Portable Network Graphics) files."
   :depends-on (#:cffi)
   :serial T
   :components ((:file "src/package")
@@ -17,3 +17,9 @@
 	       (:file "src/image")
 	       (:file "src/decode")))
 
+
+(asdf:defsystem #:xpng-gl
+  :description "Upload PNGs to GL textures"
+  :depends-on (#:xpng #:cl-opengl)
+  :serial t
+  :components ((:file "src/gl")))
