@@ -30,20 +30,26 @@
 	  
 	  (setf (image-width  image) (mem-ref width      :uint32)
 		(image-height image) (mem-ref height     :uint32)
-		(image-depth  image) (mem-ref bit-depth  :int)
-		(image-type   image) (mem-ref color-type :int))
+		;;(image-depth  image) (mem-ref bit-depth  :int)
+		(image-type   image) (let ((it (mem-ref color-type :int)))
+				       (cond
+					 ((eq it +png-color-type-palette+)    :indexed)
+					 ((eq it +png-color-type-gray+)       :grey)
+					 ((eq it +png-color-type-gray-alpha+) :grey-alpha)
+					 ((eq it +png-color-type-rgb+)        :rgb)
+					 ((eq it +png-color-type-rgba+)       :rgba))))
 
 	  (format t "image-header:~%")
 	  (format t "  width: ~d~%" (image-width  image))
 	  (format t " height: ~d~%" (image-height image))
-	  (format t "  depth: ~d~%" (image-depth  image))
-	  (format t " colort: ~d~%" (image-type   image))
+	  ;(format t "  depth: ~d~%" (image-depth  image))
+	  (format t " colort: ~s~%" (image-type   image))
 	  
 	  ))))
   image)
 
 (defun read-image-palette (png info image)
-  (if (= (image-type image) +png-color-type-palette+)
+  (if (eq (image-type image) :indexed)
       (progn
 	;; ... read pallet (only 8 bit)
 	(with-foreign-pointer (num-colors (foreign-type-size :int))

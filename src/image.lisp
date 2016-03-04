@@ -10,8 +10,8 @@
   type      ; identifies type for user
   width     ; pixels
   height    ; pixels
-  depth     ; 8 or 16 bit
-  palette   ; ((R G B) (R G B) ...)
+  ;;depth     ; 8 or 16 bit
+  palette   ; [(RGBA) (RGBA) ...]
   pixels)
 
 (defun image-pixel-size (image)
@@ -19,17 +19,10 @@
   (let ((it (image-type image)))
 
     (cond
-      ((= it +png-color-type-gray+)       1)   ; grey
-      ((= it +png-color-type-palette+)    1)   ; indexed
-      ((= it +png-color-type-gray-alpha+) 2)   ; grey + alpha
-      ((= it +png-color-type-rgb+)        3)   ; truecolor
-      ((= it +png-color-type-rgba+)       4))) ; truecolor + alpha  
-
-;;  ((= it 0) 1)   ; grey
-;;      ((= it 2) 3)   ; truecolor
-;;      ((= it 3) 1)   ; indexed
-;;      ((= it 4) 2)   ; grey + alpha
-;;      ((= it 6) 4))) ; truecolor + alpha  
-  )
+      ((eq it :grey)       1) 
+      ((eq it :indexed)    1)  
+      ((eq it :grey-alpha) 2) 
+      ((eq it :rgb)        3)  
+      ((eq it :rgba)       4))))
 
 
