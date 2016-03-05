@@ -23,3 +23,9 @@
   :depends-on (#:xpng #:cl-opengl)
   :serial t
   :components ((:file "src/gl")))
+
+(asdf:defsystem #:xpng-gl-demo
+  :description "Demo app for XPNG-GL"
+  :depends-on (#:xpng-gl #:cl-glfw3)
+  :serial t
+  :components ((:file "demo/gl-demo")))

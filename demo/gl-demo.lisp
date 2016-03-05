@@ -1,116 +1,73 @@
+(in-package :cl-user)
 
 (defpackage :xpng-gl-demo
-  (:use :cl :glfw3 :opengl :xpng)
-  (:export :main))
+  (:use :cl :cl-opengl :xpng :xpng-gl :cl-glfw3)
+  (:export :demo))
 
 (in-package :xpng-gl-demo)
 
-(defconstant +XRES+ 800)
-(defconstant +YRES+ 600)
-
-(defparameter *letters* nil)
-
-(defun load-png-to-texture (filename)
-  (let ((image 
-	 (with-open-file (input ( merge-pathnames filename) :element-type '(unsigned-byte 8))
-	   (xpng:decode input))))
-
-    (format t "png.width=~d~%" (xpng:image-width image))
-    (format t "png.height=~d~%" (xpng:image-height image))
-    (format t "png.channels=~d~%" (xpng:image-channels image))
-    (format t "png.bits=~d~%" (xpng:image-bit-depth image))
-
-    (let ((pixels (make-array
-		   (*
-		    (xpng:image-width image)
-		    (xpng:image-height image)
-		    (xpng:image-channels image)))))
-      
-      (let ((p 0))
-	(dotimes (y (xpng:image-height image))
-	  (dotimes (x (xpng:image-width image))
-	    
-	    (setf ( aref pixels p) (aref image y x 0) )
-	    (setf ( aref pixels (+ p 1)) (aref image y x 1) )
-	    (setf ( aref pixels (+ p 2)) (aref image y x 2) )
-	    (setf ( aref pixels (+ p 3)) (aref image y x 3) )
-	    
-	    (incf p 4))))
-
-	  ;;; pixels now has the array filled with image data
-
-      (gl:tex-parameter :TEXTURE-2D :TEXTURE-MIN-FILTER :NEAREST )
-      (gl:tex-parameter :TEXTURE-2D :TEXTURE-MAG-FILTER :NEAREST )
-      (gl:tex-parameter :TEXTURE-2D :TEXTURE-WRAP-S :CLAMP)
-      (gl:tex-parameter :TEXTURE-2D :TEXTURE-WRAP-T :CLAMP)
-      
-      (gl:tex-image-2d 
-       :TEXTURE-2D
-       0
-       :RGBA
-       (xpng:image-width image)
-       (xpng:image-height image)
-       0 ;; border
-       :RGBA
-       :UNSIGNED-BYTE
-       pixels)
-
-      )))
-
-(defun init ()
-  
-  (gl:viewport 0 0 +XRES+ +YRES+)
-  (gl:matrix-mode :PROJECTION)
-  (gl:load-identity)
-
-  (gl:ortho 0.0 +XRES+ +YRES+ 0.0 -1.0 1.0)
-
-  (gl:matrix-Mode :MODELVIEW)
-  (gl:load-identity)
-
-  (gl:enable :TEXTURE-2D)
-  (gl:enable :BLEND)
-  (gl:blend-func :SRC-ALPHA :ONE-MINUS-SRC-ALPHA)
-
-  (gl:clear-color 0.2 0.2 0.2 0.0)
-  (gl:color 1 1 1 )
-
-  (setf *letters* (gl:gen-textures 3))
-  (gl:bind-texture :TEXTURE-2D (first *letters*))
-  (load-png-to-texture "letter-p.png")
-  
-  (gl:bind-texture :TEXTURE-2D (second *letters*))
-  (load-png-to-texture "letter-n.png")
-  
-  (gl:bind-texture :TEXTURE-2D (third *letters*))
-  (load-png-to-texture "letter-g.png")
-  )
+(defconstant +TEXTURE-FILE-PATH+ "demo/texture.png")
+(defparameter *texture* nil)
 
 (defun render ()
   (gl:clear :color-buffer)
+  (gl:load-identity)
+  
+  (gl:bind-texture :TEXTURE-2D *texture*)
+  (gl:color 1 1 1)
+  
+  (gl:with-primitives :quads
+    (gl:tex-coord 0 0) (gl:vertex   0   0)
+    (gl:tex-coord 1 0) (gl:vertex 256   0)
+    (gl:tex-coord 1 1) (gl:vertex 256 256)
+    (gl:tex-coord 0 1) (gl:vertex   0 256)))
 
-  (gl:bind-texture (first *letters*))
-  (gl:with-primitive :quads
-    (gl:tex-coord 0 0)
-    (gl:vertex 0 0)
+(glfw:def-key-callback key-callback (window key scancode action mod-keys)
+  (declare (ignore window scancode mod-keys))
+  (when (and (eq key :escape) (eq action :press))
+    (glfw:set-window-should-close)))
 
-    (gl:tex-coord 1 0)
-    (gl:vertex 32 0)
+(defun demo ()
+  (glfw:with-init-window (:title "PNG loading GL demo" :width 640 :height 480)
 
-    (gl:tex-coord 1 1)
-    (gl:vertex 32 40)
+    ;; init
+    (glfw:set-key-callback 'key-callback)
 
-    (gl:tex-coord 0 1)
-    (gl:vertex 0 40))
+    ;; GL init
+    (gl:clear-color 0.4 0.4 1 0)
+    (gl:viewport 0 0 640 480)
+    (gl:enable :TEXTURE-2D)
+    (gl:enable :BLEND)
+    (gl:blend-func :SRC-ALPHA :ONE-MINUS-SRC-ALPHA)
+
+    (gl:matrix-mode :projection)
+    (gl:load-identity)
+    (gl:ortho 0   640
+	      480 0
+	      -1  1)
     
-  )
+    (gl:matrix-mode :modelview)
+    (gl:load-identity)
 
-(defun main ()
-  (with-init-window (:title "GL Window" :width +XRES+ :height +YRES+)
+    ;; load texture
+    (setf *texture* (first (gl:gen-textures 1)))
+    (gl:bind-texture :TEXTURE-2D *texture*)
+
+    (gl:tex-parameter :TEXTURE-2D :TEXTURE-MIN-FILTER :NEAREST )
+    (gl:tex-parameter :TEXTURE-2D :TEXTURE-MAG-FILTER :NEAREST )
+    (gl:tex-parameter :TEXTURE-2D :TEXTURE-WRAP-S :CLAMP)
+    (gl:tex-parameter :TEXTURE-2D :TEXTURE-WRAP-T :CLAMP)
+
+    (let ((path (merge-pathnames +TEXTURE-FILE-PATH+
+				  (asdf:system-source-directory :xpng-gl))))
+
+      (format t "loading ~s~%" path)
+      
+      (load-file-to-texture path :rgb))
     
-    (init)
-    
-    (loop until (window-should-close-p)
+
+    ;; main loop
+    (loop until (glfw:window-should-close-p)
        do (render)
-       do (swap-buffers)
-       do (poll-events))))
+       do (glfw:swap-buffers)
+       do (glfw:poll-events))))
