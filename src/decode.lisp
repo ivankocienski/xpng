@@ -30,7 +30,6 @@
 	  
 	  (setf (image-width  image) (mem-ref width      :uint32)
 		(image-height image) (mem-ref height     :uint32)
-		;;(image-depth  image) (mem-ref bit-depth  :int)
 		(image-type   image) (let ((it (mem-ref color-type :int)))
 				       (cond
 					 ((eq it +png-color-type-palette+)    :indexed)
@@ -38,13 +37,6 @@
 					 ((eq it +png-color-type-gray-alpha+) :grey-alpha)
 					 ((eq it +png-color-type-rgb+)        :rgb)
 					 ((eq it +png-color-type-rgba+)       :rgba))))
-
-	  (format t "image-header:~%")
-	  (format t "  width: ~d~%" (image-width  image))
-	  (format t " height: ~d~%" (image-height image))
-	  ;(format t "  depth: ~d~%" (image-depth  image))
-	  (format t " colort: ~s~%" (image-type   image))
-	  
 	  ))))
   image)
 
